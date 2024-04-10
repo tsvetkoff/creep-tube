@@ -1,9 +1,14 @@
-package tsvetkoff.creep;
+package tsvetkoff.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.ToString;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import tsvetkoff.creep.strategy.factory.StrategyTypeValues;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +19,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+@Data
+@Builder
+@AllArgsConstructor
+@ToString
 public class Params {
 
     public double dr, dt, t_max;
@@ -24,7 +33,7 @@ public class Params {
     public double alpha1_gamma, mAlpha_gamma, alpha1_p, mAlpha_p;
     public double sigma_0, tau_max, q;
     // моменты времени для отображения
-    public Set<Double> stressTimes = new TreeSet<>();
+    public TreeSet<Double> stressTimes;
 
     public Params(String file) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(file), StandardCharsets.UTF_8)) {
@@ -60,13 +69,10 @@ public class Params {
             mA_p = Double.parseDouble(root.getChild("creep").getChild("w").getChild("A").getChild("mA").getAttributeValue("value"));
             A1_p = Double.parseDouble(root.getChild("creep").getChild("w").getChild("A").getChild("A1").getAttributeValue("value"));
 
-            c_gamma = c_p;
-            mAlpha_gamma = mAlpha_p;
-            alpha1_gamma = alpha1_p;
-            mA_gamma = mA_p;
-            A1_gamma = A1_p;
+            initGammaConstants();
 
             List<Element> stressTimesList = root.getChild("output").getChild("stressTimes").getChildren("t");
+            stressTimes = new TreeSet<>();
             for (Element timeElement : stressTimesList) {
                 stressTimes.add(Double.parseDouble(timeElement.getAttributeValue("value")));
             }
@@ -75,30 +81,12 @@ public class Params {
         }
     }
 
-    @Override
-    public String toString() {
-        return "{" + "dr=" + dr +
-                ", dt=" + dt +
-                ", t_max=" + t_max +
-                ", R1=" + R1 +
-                ", R2=" + R2 +
-                ", E=" + E +
-                ", mu=" + mu +
-                ", b=" + b +
-                ", n=" + n +
-                ", lambda=" + lambda +
-                ", mu_1=" + mu_1 +
-                ", c=" + c_p +
-                ", m=" + m +
-                ", A1=" + A1_p +
-                ", mA=" + mA_p +
-                ", alpha1=" + alpha1_p +
-                ", mAlpha=" + mAlpha_p +
-                ", sigma_0=" + sigma_0 +
-                ", tau_max=" + tau_max +
-                ", q=" + q +
-                ", stressTimes=" + stressTimes +
-                '}';
+    public Params initGammaConstants() {
+        c_gamma = c_p;
+        mAlpha_gamma = mAlpha_p;
+        alpha1_gamma = alpha1_p;
+        mA_gamma = mA_p;
+        A1_gamma = A1_p;
+        return this;
     }
-
 }

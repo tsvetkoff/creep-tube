@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/creep-tube
+    username: postgres
+    password: 123
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/creep-tube-migration.yml
+  jpa:
+    show-sql: true
+  banner:
+    location: classpath:banner/creep-tube-banner
+creep-tube-ui-domain:
+  http://localhost:3000

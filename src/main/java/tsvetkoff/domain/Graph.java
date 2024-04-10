@@ -1,4 +1,11 @@
-package tsvetkoff.creep;
+package tsvetkoff.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import tsvetkoff.creep.MathUtils;
+import tsvetkoff.creep.strategy.factory.StrategyTypeValues;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+@Data
 public class Graph {
 
     private static final Path OUTPUT = Paths.get("output");

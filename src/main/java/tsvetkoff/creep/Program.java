@@ -1,5 +1,10 @@
 package tsvetkoff.creep;
 
+import lombok.Data;
+import lombok.Getter;
+import tsvetkoff.domain.Graph;
+import tsvetkoff.domain.Params;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -7,6 +12,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
+@Data
 public class Program {
 
     public Params params;
@@ -22,6 +28,10 @@ public class Program {
 
     public Program(String fileName) throws IOException {
         params = new Params(fileName);
+    }
+
+    public Program(Params params){
+        this.params = params;
     }
 
     public static void main(String[] args) {
@@ -47,8 +57,8 @@ public class Program {
         for (int j = 0; j < r.length; j++) {
             r[j] = MathUtils.round(params.R1 + j * params.dr, 7);
         }
-        System.out.println(String.format("Выполнена дискретизация по радиусу: [%s, %s, %s, ... , %s, %s] с шагом dr=%s (%d точек)",
-                r[0], r[1], r[2], r[r.length - 2], r[r.length - 1], params.dr, r.length));
+        System.out.printf("Выполнена дискретизация по радиусу: [%s, %s, %s, ... , %s, %s] с шагом dr=%s (%d точек)%n",
+                r[0], r[1], r[2], r[r.length - 2], r[r.length - 1], params.dr, r.length);
 
         sigma = new Stress(r.length);
         p = new CreepStrain(r.length, params);
