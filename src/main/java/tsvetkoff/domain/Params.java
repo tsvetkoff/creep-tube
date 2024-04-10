@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 @Data
@@ -34,6 +33,8 @@ public class Params {
     public double sigma_0, tau_max, q;
     // моменты времени для отображения
     public TreeSet<Double> stressTimes;
+
+    private StrategyTypeValues graphType;
 
     public Params(String file) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(file), StandardCharsets.UTF_8)) {

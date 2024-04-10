@@ -19,7 +19,7 @@ public class CorsConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/example").allowedOrigins(creepTubeUi);
+                registry.addMapping("/build").allowedOrigins(creepTubeUi);
                 registry.addMapping("/run").allowedOrigins(creepTubeUi);
             }
         };

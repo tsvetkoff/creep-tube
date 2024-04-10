@@ -26,9 +26,10 @@ public class ChartController {
      * @param strategyTypeValues - тип графика
      */
     @PostMapping("build")
-    public ResponseEntity<Object> getSimpleGraph(@RequestBody StrategyTypeValues strategyTypeValues) throws NoSuchFieldException, IllegalAccessException {
+    public ResponseEntity<Object> getSimpleGraph(@RequestBody Params params) throws NoSuchFieldException, IllegalAccessException {
+        run = new Program(params).run();
         if(run != null && run.getR() != null) {
-            return ResponseEntity.ok(GraphDto.builder().abscissa(run.getR()).graphDetails(strategyTypeValues.getGraphCoordinates(run)).build());
+            return ResponseEntity.ok(GraphDto.builder().abscissa(run.getR()).graphDetails(params.getGraphType().getGraphCoordinates(run)).build());
         }
         return ResponseEntity.badRequest().body(run == null? "Run is null": run.getR() == null ? "Run get R null": "unknown");
     }
