@@ -11,6 +11,9 @@ import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
 import tsvetkoff.domain.Params;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * @author SweetSupremum
  */
@@ -18,7 +21,9 @@ import tsvetkoff.domain.Params;
 @RequiredArgsConstructor
 public class ChartController {
 
-    private Graph run;
+    private Program run;
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * кидаем запрос сюда с фронта массива который хотим вернуть. По сути имя поля {@link Graph#имя любого готового поля}
@@ -27,9 +32,11 @@ public class ChartController {
      */
     @PostMapping("build")
     public ResponseEntity<Object> getSimpleGraph(@RequestBody Params params) throws NoSuchFieldException, IllegalAccessException {
-        run = new Program(params).run();
-        if(run != null && run.getR() != null) {
-            return ResponseEntity.ok(GraphDto.builder().abscissa(run.getR()).graphDetails(params.getGraphType().getGraphCoordinates(run)).build());
+        if(run != null && run.getGraph() != null && run.getR() != null) {
+            return ResponseEntity.ok(GraphDto.builder().abscissa(run.getR()).graphDetails(params.getGraphType().getGraphCoordinates(run.getGraph())).build());
+        }
+        if(run != null && run.getGraph() == null){
+            return ResponseEntity.badRequest().body("graph is not initialized");
         }
         return ResponseEntity.badRequest().body(run == null? "Run is null": run.getR() == null ? "Run get R null": "unknown");
     }
@@ -40,7 +47,9 @@ public class ChartController {
      */
     @PostMapping("/run")
     public ResponseEntity<?> run(@RequestBody Params params){
-        run = new Program(params).run();
+        run = new Program(params);
+        executorService.execute(()->run.run());
+        executorService.shutdown();
         return ResponseEntity.ok(run);
     }
 
