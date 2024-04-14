@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author SweetSupremum
  */
 @SpringBootApplication
-@Slf4j
 public class CreepTubeApplication {
     public static void main(String[] args) {
         SpringApplication.run(CreepTubeApplication.class);

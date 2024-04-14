@@ -6,4 +6,4 @@ creep-tube-ui-domain:
 server:
   tomcat:
     threads:
-      max: 1
+      max: 200

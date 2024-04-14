@@ -116,14 +116,14 @@ public class Graph {
 
     public List<Pair<String, Map<String, double[]>>> getTwoDimensionalGraphWithName() {
         return List.of(
-                Pair.of(StrategyTypeValues.sigma_z0.name(), new LinkedHashMap<>(sigma_z0))/*,
+                Pair.of(StrategyTypeValues.sigma_z0.name(), new LinkedHashMap<>(sigma_z0)),
                 Pair.of(StrategyTypeValues.sigma_z.name(), new LinkedHashMap<>(sigma_z)),
                 Pair.of(StrategyTypeValues.sigma_theta0.name(), new LinkedHashMap<>(sigma_theta0)),
                 Pair.of(StrategyTypeValues.sigma_theta.name(), new LinkedHashMap<>(sigma_theta)),
                 Pair.of(StrategyTypeValues.sigma_r.name(), new LinkedHashMap<>(sigma_r)),
                 Pair.of(StrategyTypeValues.sigma_r0.name(), new LinkedHashMap<>(sigma_r0)),
                 Pair.of(StrategyTypeValues.tau0.name(), new LinkedHashMap<>(tau0)),
-                Pair.of(StrategyTypeValues.tau.name(), new LinkedHashMap<>(tau))*/
+                Pair.of(StrategyTypeValues.tau.name(), new LinkedHashMap<>(tau))
         );
     }
 

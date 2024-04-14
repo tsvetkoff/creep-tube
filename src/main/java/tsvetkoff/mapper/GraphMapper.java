@@ -5,15 +5,15 @@ import org.springframework.stereotype.Component;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
 import tsvetkoff.domain.GraphNameDto;
+import tsvetkoff.domain.GraphNameDtoCollectionWrapper;
 import tsvetkoff.domain.Pair;
 import tsvetkoff.domain.Params;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author SweetSupremum
@@ -22,19 +22,27 @@ import java.util.stream.Collectors;
 @Slf4j(topic = "GRAPH_MAPPER")
 public class GraphMapper {
 
-    public List<GraphNameDto> twoDimensionalMapToDto(Params params, Graph graph) {
-        List<GraphNameDto> nameGraphs = new ArrayList<>();
+    public GraphNameDtoCollectionWrapper twoDimensionalMapToDto(Params params, Graph graph) {
         TreeSet<Double> stressTimes = params.getStressTimes();
         double[] r = graph.getR();
         log.error(Thread.currentThread().toString());
-        graph.getTwoDimensionalGraphWithName().forEach(nameDataGraph -> {
-            GraphNameDto graphNameDto = new GraphNameDto();
+        List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
+        AtomicBoolean isNotReady = new AtomicBoolean(true);
+        List<Pair<String, Map<String, double[]>>> twoDimensionalGraphWithName = graph.getTwoDimensionalGraphWithName();
+        twoDimensionalGraphWithName.forEach(nameDataGraph -> {
+            Map<String, double[]> timeCoordinates = nameDataGraph.getSecond();
+            if (timeCoordinates.keySet().isEmpty()) {
+                isNotReady.set(false);
+            }
+        });
+        if (isNotReady.get()) {
+            return null;
+        }
+        twoDimensionalGraphWithName.forEach(nameDataGraph -> {
             String nameGraph = nameDataGraph.getFirst();
-            Map<String, List<GraphDto>> graphs = new LinkedHashMap<>();
             log.error(nameGraph);
             Map<String, double[]> dataGraph = nameDataGraph.getSecond();
             List<GraphDto> coordinates = new ArrayList<>();
-
             for (int i = 0; i < r.length; i++) {
                 List<Pair<String, Double>> ordinates = new ArrayList<>();
                 int temp = i;
@@ -46,19 +54,16 @@ public class GraphMapper {
                         ordinates.add(Pair.of(stringValueStressTime, graphValuesByTime[temp]));
                     }
                 });
-
                 coordinates.add(
                         GraphDto.builder().abscissa(r[temp]).ordinates(ordinates).build()
                 );
             }
-            graphs.put(nameGraph, coordinates);
-            graphNameDto.setGraphs(graphs);
-            nameGraphs.add(graphNameDto);
+            bodyGraphCollectionWrapper.add(Pair.of(nameGraph, GraphNameDto.builder().graphs(coordinates).build()));
         });
-        return nameGraphs;
+        return GraphNameDtoCollectionWrapper.builder().graphs(bodyGraphCollectionWrapper).build();
     }
 
-    private List<GraphNameDto> oneDimensionalMapToDto(Params params, Graph graph) {
+    private GraphNameDtoCollectionWrapper oneDimensionalMapToDto(Params params, Graph graph) {
         return null;
     }
 }
