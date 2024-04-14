@@ -1,12 +1,14 @@
 package tsvetkoff.creep;
 
 import lombok.Data;
-import lombok.Getter;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.Params;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
@@ -14,7 +16,7 @@ import static java.lang.Math.sqrt;
 
 @Data
 public class Program {
-
+    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     public Params params;
     public double[] r;
     public double t, r_damaged;
@@ -30,7 +32,7 @@ public class Program {
         params = new Params(fileName);
     }
 
-    public Program(Params params){
+    public Program(Params params) {
         this.params = params;
     }
 
@@ -84,6 +86,10 @@ public class Program {
         addStressToOutput(t + " ч");
         System.out.println("Программа выполнилась за " + (System.currentTimeMillis() - start) / 1000.0 + " с");
         return graph;
+    }
+
+    public Future<Graph> asyncRun()  {
+        return executorService.submit(this::run);
     }
 
     private void raiseForces() {

@@ -1,5 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: db/changelog/changes/create_hibernate_sequence.sql
-  - include:
-      file: db/changelog/changes/create-creep-tube-entity.sql

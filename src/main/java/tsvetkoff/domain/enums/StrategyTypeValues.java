@@ -1,4 +1,4 @@
-package tsvetkoff.creep.strategy.factory;
+package tsvetkoff.domain.enums;
 
 import org.springframework.util.ReflectionUtils;
 import tsvetkoff.domain.Graph;

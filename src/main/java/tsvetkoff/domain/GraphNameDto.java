@@ -1,12 +1,13 @@
 package tsvetkoff.domain;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author SweetSupremum
@@ -15,9 +16,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonSerialize(using = GraphDtoSerializer.class)
-public class GraphDto {
-
-    private Double abscissa;
-    private List<Pair<String, Double>> ordinates;
+public class GraphNameDto {
+    @JsonValue
+    private Map<String, List<GraphDto>> graphs;
 }
