@@ -31,7 +31,7 @@ public class GraphMapper {
         List<Pair<String, Map<String, double[]>>> twoDimensionalGraphWithName = graph.getTwoDimensionalGraphWithName();
         twoDimensionalGraphWithName.forEach(nameDataGraph -> {
             Map<String, double[]> timeCoordinates = nameDataGraph.getSecond();
-            if (timeCoordinates.keySet().isEmpty()) {
+            if (!timeCoordinates.keySet().isEmpty()) {
                 isNotReady.set(false);
             }
         });

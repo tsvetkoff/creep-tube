@@ -33,7 +33,7 @@ public class ChartController {
      *
      * @param strategyTypeValues - тип графика
      */
-    @PostMapping("build")
+    @PostMapping("/build")
     public ResponseEntity<Object> getSimpleGraph(@RequestBody Params params) throws ExecutionException, InterruptedException {
         if (graphFuture.isDone()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.twoDimensionalMapToDto(params, graphFuture.get()));
