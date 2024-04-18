@@ -13,6 +13,7 @@ import tsvetkoff.mapper.GraphMapper;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * @author SweetSupremum
@@ -28,15 +29,12 @@ public class ChartController {
 
 
     /**
-     * кидаем запрос сюда с фронта массива который хотим вернуть. По сути имя поля {@link Graph#имя любого готового поля}
-     * см. поля и класс
-     *
-     * @param strategyTypeValues - тип графика
+     * Строит графики по таймаут запросу.
      */
     @PostMapping("/build")
     public ResponseEntity<Object> getSimpleGraph(@RequestBody Params params) throws ExecutionException, InterruptedException {
         if (graphFuture.isDone()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.twoDimensionalMapToDto(params, graphFuture.get()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(params, graphFuture.get()));
         }
         if (run != null && run.getGraph() != null && run.getR() != null) {
             return ResponseEntity.ok(graphMapper.twoDimensionalMapToDto(params, run.getGraph()));
@@ -55,7 +53,7 @@ public class ChartController {
     public ResponseEntity<?> run(@RequestBody Params params) {
         run = new Program(params);
         graphFuture = run.asyncRun();
-        return ResponseEntity.ok(run);
+        return ResponseEntity.ok(params.getStressTimes().stream().map(Object::toString).collect(Collectors.toList()));
     }
 
 }

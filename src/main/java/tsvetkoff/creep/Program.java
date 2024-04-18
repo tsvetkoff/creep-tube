@@ -113,7 +113,7 @@ public class Program {
         eps_z = (sigma.sigma_z0[0] - params.mu * (sigma.sigma_theta0[0] + sigma.sigma_r0[0])) / params.E;
         theta = M / (G * Jr);
         addStrainToOutput();
-        addStressToOutput("0 ч");
+        addStressToOutput("0.0 ч");
     }
 
     private void addStressToOutput(String time) {

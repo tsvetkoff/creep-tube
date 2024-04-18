@@ -35,8 +35,6 @@ public class Params {
     // моменты времени для отображения
     public TreeSet<Double> stressTimes;
 
-    private StrategyTypeValues graphType;
-
     public Params(String file) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(Paths.get(file), StandardCharsets.UTF_8)) {
             SAXBuilder parser = new SAXBuilder();
@@ -83,12 +81,11 @@ public class Params {
         }
     }
 
-    public Params initGammaConstants() {
+    public void initGammaConstants() {
         c_gamma = c_p;
         mAlpha_gamma = mAlpha_p;
         alpha1_gamma = alpha1_p;
         mA_gamma = mA_p;
         A1_gamma = A1_p;
-        return this;
     }
 }

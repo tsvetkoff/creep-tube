@@ -129,8 +129,8 @@ public class Graph {
 
     public List<Pair<String, Map<Double, Double>>> getOneDimensionalGraphWithName() {
         return List.of(
-                Pair.of(StrategyTypeValues.eps_z.name(), eps_z),
-                Pair.of(StrategyTypeValues.theta.name(), theta)
+                Pair.of(StrategyTypeValues.eps_z.name(), new LinkedHashMap<>(eps_z)),
+                Pair.of(StrategyTypeValues.theta.name(), new LinkedHashMap<>(theta))
         );
     }
 

@@ -63,7 +63,29 @@ public class GraphMapper {
         return GraphNameDtoCollectionWrapper.builder().graphs(bodyGraphCollectionWrapper).build();
     }
 
-    private GraphNameDtoCollectionWrapper oneDimensionalMapToDto(Params params, Graph graph) {
-        return null;
+    public GraphNameDtoCollectionWrapper getAll(Params params, Graph graph) {
+        List<Pair<String, GraphNameDto>> twoDimensional = twoDimensionalMapToDto(params, graph).getGraphs();
+        List<Pair<String, GraphNameDto>> oneDimensional = oneDimensionalMapToDto(graph);
+        List<Pair<String, GraphNameDto>> allGraphs = new ArrayList<>(oneDimensional);
+        if (twoDimensional != null) {
+            allGraphs.addAll(twoDimensional);
+        }
+        return GraphNameDtoCollectionWrapper.builder().graphs(allGraphs).build();
+    }
+
+    private List<Pair<String, GraphNameDto>> oneDimensionalMapToDto(Graph graph) {
+        List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
+        List<Pair<String, Map<Double, Double>>> oneDimensionalGraphWithName = graph.getOneDimensionalGraphWithName();
+        oneDimensionalGraphWithName.forEach(nameCoordinates -> {
+            String name = nameCoordinates.getFirst();
+            Map<Double, Double> coordinates = nameCoordinates.getSecond();
+            List<GraphDto> graphs = new ArrayList<>();
+            coordinates.forEach((abscissa, ordinate) ->
+                graphs.add(GraphDto.builder().abscissa(abscissa).ordinates(List.of(Pair.of("time", ordinate))).build())
+            );
+
+            bodyGraphCollectionWrapper.add(Pair.of(name, GraphNameDto.builder().graphs(graphs).build()));
+        });
+        return bodyGraphCollectionWrapper;
     }
 }
