@@ -114,6 +114,9 @@ public class Graph {
     }
 
 
+    /**
+     * добавляем копию из - за {@link java.util.ConcurrentModificationException}
+     */
     public List<Pair<String, Map<String, double[]>>> getTwoDimensionalGraphWithName() {
         return List.of(
                 Pair.of(StrategyTypeValues.sigma_z0.name(), new LinkedHashMap<>(sigma_z0)),
@@ -127,10 +130,13 @@ public class Graph {
         );
     }
 
+    /**
+     * Звонить в метод, когда до конца пересчитались коллекции
+     */
     public List<Pair<String, Map<Double, Double>>> getOneDimensionalGraphWithName() {
         return List.of(
-                Pair.of(StrategyTypeValues.eps_z.name(), new LinkedHashMap<>(eps_z)),
-                Pair.of(StrategyTypeValues.theta.name(), new LinkedHashMap<>(theta))
+                Pair.of(StrategyTypeValues.eps_z.name(), eps_z),
+                Pair.of(StrategyTypeValues.theta.name(), theta)
         );
     }
 

@@ -1,6 +1,7 @@
 package tsvetkoff.mapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
@@ -8,12 +9,14 @@ import tsvetkoff.domain.GraphNameDto;
 import tsvetkoff.domain.GraphNameDtoCollectionWrapper;
 import tsvetkoff.domain.Pair;
 import tsvetkoff.domain.Params;
+import tsvetkoff.utill.StepUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * @author SweetSupremum
@@ -22,10 +25,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j(topic = "GRAPH_MAPPER")
 public class GraphMapper {
 
+    @Value("${graph.points.count}")
+    /**
+     * количество точек + 1 потому что берется нулевой элемент
+     * (сначала проходим в цикле по нулевому потом уже добавляем это количество точек)
+     * т.е. на 20 точек будет 20+1 (нулевая точка). Если же количество точек будет меньше чем pointCount*2, то выведем все
+     * pointCount * 2
+     */
+    private Integer pointCount;
+
     public GraphNameDtoCollectionWrapper twoDimensionalMapToDto(Params params, Graph graph) {
         TreeSet<Double> stressTimes = params.getStressTimes();
         double[] r = graph.getR();
         log.error(Thread.currentThread().toString());
+        log.error(String.valueOf(r.length));
         List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
         AtomicBoolean isNotReady = new AtomicBoolean(true);
         List<Pair<String, Map<String, double[]>>> twoDimensionalGraphWithName = graph.getTwoDimensionalGraphWithName();
@@ -43,19 +56,19 @@ public class GraphMapper {
             log.error(nameGraph);
             Map<String, double[]> dataGraph = nameDataGraph.getSecond();
             List<GraphDto> coordinates = new ArrayList<>();
-            for (int i = 0; i < r.length; i++) {
+            for (double i = 0; i < r.length; i += StepUtils.getStep(r.length, pointCount)) {
                 List<Pair<String, Double>> ordinates = new ArrayList<>();
-                int temp = i;
+                double temp = i;
 
                 stressTimes.forEach(stressTime -> {
                     String stringValueStressTime = stressTime + " ч";
                     double[] graphValuesByTime = dataGraph.get(stringValueStressTime);
                     if (graphValuesByTime != null) {
-                        ordinates.add(Pair.of(stringValueStressTime, graphValuesByTime[temp]));
+                        ordinates.add(Pair.of(stringValueStressTime, graphValuesByTime[(int) temp]));
                     }
                 });
                 coordinates.add(
-                        GraphDto.builder().abscissa(r[temp]).ordinates(ordinates).build()
+                        GraphDto.builder().abscissa(r[(int) temp]).ordinates(ordinates).build()
                 );
             }
             bodyGraphCollectionWrapper.add(Pair.of(nameGraph, GraphNameDto.builder().graphs(coordinates).build()));
@@ -80,10 +93,12 @@ public class GraphMapper {
             String name = nameCoordinates.getFirst();
             Map<Double, Double> coordinates = nameCoordinates.getSecond();
             List<GraphDto> graphs = new ArrayList<>();
-            coordinates.forEach((abscissa, ordinate) ->
-                graphs.add(GraphDto.builder().abscissa(abscissa).ordinates(List.of(Pair.of("time", ordinate))).build())
-            );
+            List<Double> ordinates = coordinates.values().stream().toList();
+            double[] r = graph.getR();
+            for (double i = 0; i < r.length; i += StepUtils.getStep(r.length, pointCount)) {
+                graphs.add(GraphDto.builder().abscissa(r[(int) i]).ordinates(List.of(Pair.of("time", ordinates.get((int) i)))).build());
 
+            }
             bodyGraphCollectionWrapper.add(Pair.of(name, GraphNameDto.builder().graphs(graphs).build()));
         });
         return bodyGraphCollectionWrapper;

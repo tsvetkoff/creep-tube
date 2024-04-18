@@ -7,3 +7,6 @@ server:
   tomcat:
     threads:
       max: 200
+graph:
+  points:
+    count: 20
