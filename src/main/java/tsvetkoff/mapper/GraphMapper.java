@@ -14,9 +14,7 @@ import tsvetkoff.utill.StepUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * @author SweetSupremum
@@ -32,23 +30,20 @@ public class GraphMapper {
      * т.е. на 20 точек будет 20+1 (нулевая точка). Если же количество точек будет меньше чем pointCount*2, то выведем все
      * pointCount * 2
      */
-    private Integer pointCount;
+    private int pointCount;
 
     public GraphNameDtoCollectionWrapper twoDimensionalMapToDto(Params params, Graph graph) {
-        TreeSet<Double> stressTimes = params.getStressTimes();
+        Set<Double> stressTimes = params.getStressTimes();
         double[] r = graph.getR();
         log.error(Thread.currentThread().toString());
         log.error(String.valueOf(r.length));
         List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
-        AtomicBoolean isNotReady = new AtomicBoolean(true);
         List<Pair<String, Map<String, double[]>>> twoDimensionalGraphWithName = graph.getTwoDimensionalGraphWithName();
-        twoDimensionalGraphWithName.forEach(nameDataGraph -> {
+        boolean isNotReady = twoDimensionalGraphWithName.stream().anyMatch(nameDataGraph -> {
             Map<String, double[]> timeCoordinates = nameDataGraph.getSecond();
-            if (!timeCoordinates.keySet().isEmpty()) {
-                isNotReady.set(false);
-            }
+            return timeCoordinates.keySet().isEmpty();
         });
-        if (isNotReady.get()) {
+        if (isNotReady) {
             return null;
         }
         twoDimensionalGraphWithName.forEach(nameDataGraph -> {

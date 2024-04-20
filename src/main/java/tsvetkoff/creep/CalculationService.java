@@ -1,11 +1,10 @@
 package tsvetkoff.creep;
 
-import lombok.Data;
+import lombok.Getter;
+import org.springframework.stereotype.Service;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.Params;
 
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -14,39 +13,21 @@ import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
-@Data
-public class Program {
+@Service
+@Getter
+public class CalculationService {
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    public Params params;
-    public double[] r;
-    public double t, r_damaged;
-    public Graph graph;
-    public Stress sigma;
-    public CreepStrain p;
-    public double eps_z, theta;
-    public double G, F, M, Jr, Q;
-    public MathUtils mathUtils;
-    public double[] temp1, temp2, g;
+    private double[] r;
+    private double t, r_damaged;
+    private Graph graph;
+    private Stress sigma;
+    private CreepStrain p;
+    private double eps_z, theta;
+    private double G, F, M, Jr, Q;
+    private MathUtils mathUtils;
+    private double[] temp1, temp2, g;
 
-    public Program(String fileName) throws IOException {
-        params = new Params(fileName);
-    }
-
-    public Program(Params params) {
-        this.params = params;
-    }
-
-    public static void main(String[] args) {
-        try {
-            Program program = new Program("params.xml");
-            Graph graph = program.run();
-            graph.output(Paths.get("./"));
-        } catch (IOException e) {
-            throw new RuntimeException("Ошибка ввода-вывода", e);
-        }
-    }
-
-    public void init() {
+    public void init(Params params) {
         double N = MathUtils.round((params.R2 - params.R1) / params.dr, 7) + 1;
         if (N % 1 != 0) {
             throw new IllegalArgumentException("Число точек разбиения по радиусу должно быть целым, но равно " + N + ", уменьшите шаг");
@@ -71,14 +52,15 @@ public class Program {
         mathUtils = new MathUtils(r.length);
     }
 
-    public Graph run() {
-        init();
-        System.out.println("Начало расчёта с параметрами " + params.toString());
+    public Graph calculation(Params params) {
+        params.initGammaConstants();
+        init(params);
+        System.out.println("Начало расчёта с параметрами " + params);
         long start = System.currentTimeMillis();
-        raiseForces();
+        raiseForces(params);
         while (t < params.t_max) {
             t = MathUtils.round(t + params.dt, 7);
-            creep();
+            creep(params);
             if (checkFinish()) {
                 break;
             }
@@ -88,11 +70,11 @@ public class Program {
         return graph;
     }
 
-    public Future<Graph> asyncRun()  {
-        return executorService.submit(this::run);
+    public Future<Graph> asyncCalculation(Params params) {
+        return executorService.submit(() -> calculation(params));
     }
 
-    private void raiseForces() {
+    private void raiseForces(Params params) {
         G = params.E / (2 * (1 + params.mu));
         F = params.sigma_0 * PI * (pow(params.R2, 2) - pow(params.R1, 2));
         Jr = (PI / 2) * (pow(params.R2, 4) - pow(params.R1, 4));
@@ -132,12 +114,12 @@ public class Program {
         graph.theta.put(t, theta);
     }
 
-    public void creep() {
-        resolve_creep();
-        resolve_sigma_r0();
-        resolve_sigma_theta0();
-        resolve_sigma_z0();
-        resolve_tau0();
+    public void creep(Params params) {
+        resolve_creep(params);
+        resolve_sigma_r0(params);
+        resolve_sigma_theta0(params);
+        resolve_sigma_z0(params);
+        resolve_tau0(params);
 
         for (int j = 0; j < r.length; j++) {
             sigma.s0[j] = 1 / sqrt(2) * sqrt(pow(sigma.sigma_z0[j] - sigma.sigma_theta0[j], 2) + pow(sigma.sigma_z0[j] - sigma.sigma_r0[j], 2) + pow(sigma.sigma_theta0[j] - sigma.sigma_r0[j], 2) + 6 * pow(sigma.tau0[j], 2));
@@ -186,9 +168,9 @@ public class Program {
         return damaged;
     }
 
-    private void resolve_creep() {
+    private void resolve_creep(Params params) {
         for (int j = 0; j < r.length; j++) {
-            resolveV(sigma, j);
+            resolveV(sigma, j, params);
 
             p.w_r[1][j] += 3.0 / 2.0 * params.c_p * pow(sigma.s[j], params.m - 1) * (sigma.sigma_r[j] - 1.0 / 3.0 * (sigma.sigma_z[j] + sigma.sigma_theta[j] + sigma.sigma_r[j])) * params.dt;
             p.w_theta[1][j] += 3.0 / 2.0 * params.c_p * pow(sigma.s[j], params.m - 1) * (sigma.sigma_theta[j] - 1.0 / 3.0 * (sigma.sigma_z[j] + sigma.sigma_theta[j] + sigma.sigma_r[j])) * params.dt;
@@ -207,7 +189,7 @@ public class Program {
         }
     }
 
-    private void resolveV(Stress sigma, int j) {
+    private void resolveV(Stress sigma, int j, Params params) {
         if (params.b == 0) {
             return;
         }
@@ -252,16 +234,16 @@ public class Program {
         }
     }
 
-    private void resolve_sigma_r0() {
-        resolve_g();
+    private void resolve_sigma_r0(Params params) {
+        resolve_g(params);
         if (params.R1 > 0) {
-            resolve_sigma_r0_hollow();
+            resolve_sigma_r0_hollow(params);
         } else {
-            resolve_sigma_r0_solid();
+            resolve_sigma_r0_solid(params);
         }
     }
 
-    private void resolve_sigma_r0_solid() {
+    private void resolve_sigma_r0_solid(Params params) {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = g[j] * r[j];
         }
@@ -279,7 +261,7 @@ public class Program {
         sigma.sigma_r0[0] = sigma.sigma_r0[1];
     }
 
-    private void resolve_sigma_r0_hollow() {
+    private void resolve_sigma_r0_hollow(Params params) {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = g[j] * r[j];
             temp2[j] = g[j] / r[j];
@@ -303,7 +285,7 @@ public class Program {
         }
     }
 
-    private void resolve_g() {
+    private void resolve_g(Params params) {
         g[0] = params.E / (1 - pow(params.mu, 2)) * (p.p_r[1][0] - p.p_theta[1][0]
                 - params.R1 * ((p.p_theta[1][1] - p.p_theta[1][0]) / params.dr
                 + params.mu * (p.p_z[1][1] - p.p_z[1][0]) / params.dr)
@@ -320,7 +302,7 @@ public class Program {
         );
     }
 
-    private void resolve_sigma_theta0() {
+    private void resolve_sigma_theta0(Params params) {
         sigma.sigma_theta0[0] = sigma.sigma_r0[0] + params.R1 * (-3 * sigma.sigma_r0[0] + 4 * sigma.sigma_r0[1] - sigma.sigma_r0[2]) / (2 * params.dr);
         for (int j = 1; j < r.length - 1; j++) {
             sigma.sigma_theta0[j] = sigma.sigma_r0[j] + r[j] * (sigma.sigma_r0[j + 1] - sigma.sigma_r0[j - 1]) / (2 * params.dr);
@@ -328,7 +310,7 @@ public class Program {
         sigma.sigma_theta0[r.length - 1] = sigma.sigma_r0[r.length - 1] + params.R2 * (3 * sigma.sigma_r0[r.length - 1] - 4 * sigma.sigma_r0[r.length - 2] + sigma.sigma_r0[r.length - 3]) / (2 * params.dr);
     }
 
-    private void resolve_sigma_z0() {
+    private void resolve_sigma_z0(Params params) {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = (p.p_z[1][j] - params.mu / params.E * (sigma.sigma_r0[j] + sigma.sigma_theta0[j])) * r[j];
         }
@@ -338,7 +320,7 @@ public class Program {
         }
     }
 
-    private void resolve_tau0() {
+    private void resolve_tau0(Params params) {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = p.gamma_p[1][j] * pow(r[j], 2);
         }

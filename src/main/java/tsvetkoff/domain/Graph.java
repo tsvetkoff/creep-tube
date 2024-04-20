@@ -2,7 +2,7 @@ package tsvetkoff.domain;
 
 import lombok.Data;
 import tsvetkoff.creep.MathUtils;
-import tsvetkoff.domain.enums.StrategyTypeValues;
+import tsvetkoff.domain.enums.GraphNames;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -119,14 +119,14 @@ public class Graph {
      */
     public List<Pair<String, Map<String, double[]>>> getTwoDimensionalGraphWithName() {
         return List.of(
-                Pair.of(StrategyTypeValues.sigma_z0.name(), new LinkedHashMap<>(sigma_z0)),
-                Pair.of(StrategyTypeValues.sigma_z.name(), new LinkedHashMap<>(sigma_z)),
-                Pair.of(StrategyTypeValues.sigma_theta0.name(), new LinkedHashMap<>(sigma_theta0)),
-                Pair.of(StrategyTypeValues.sigma_theta.name(), new LinkedHashMap<>(sigma_theta)),
-                Pair.of(StrategyTypeValues.sigma_r.name(), new LinkedHashMap<>(sigma_r)),
-                Pair.of(StrategyTypeValues.sigma_r0.name(), new LinkedHashMap<>(sigma_r0)),
-                Pair.of(StrategyTypeValues.tau0.name(), new LinkedHashMap<>(tau0)),
-                Pair.of(StrategyTypeValues.tau.name(), new LinkedHashMap<>(tau))
+                Pair.of(GraphNames.SIGMA_Z0.getName(), new LinkedHashMap<>(sigma_z0)),
+                Pair.of(GraphNames.SIGMA_Z.getName(), new LinkedHashMap<>(sigma_z)),
+                Pair.of(GraphNames.SIGMA_THETA0.getName(), new LinkedHashMap<>(sigma_theta0)),
+                Pair.of(GraphNames.SIGMA_THETA.getName(), new LinkedHashMap<>(sigma_theta)),
+                Pair.of(GraphNames.SIGMA_R.getName(), new LinkedHashMap<>(sigma_r)),
+                Pair.of(GraphNames.SIGMA_R0.getName(), new LinkedHashMap<>(sigma_r0)),
+                Pair.of(GraphNames.TAU0.getName(), new LinkedHashMap<>(tau0)),
+                Pair.of(GraphNames.TAU.getName(), new LinkedHashMap<>(tau))
         );
     }
 
@@ -135,8 +135,8 @@ public class Graph {
      */
     public List<Pair<String, Map<Double, Double>>> getOneDimensionalGraphWithName() {
         return List.of(
-                Pair.of(StrategyTypeValues.eps_z.name(), eps_z),
-                Pair.of(StrategyTypeValues.theta.name(), theta)
+                Pair.of(GraphNames.EPS_Z.getName(), eps_z),
+                Pair.of(GraphNames.THETA.getName(), theta)
         );
     }
 

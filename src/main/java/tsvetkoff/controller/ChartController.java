@@ -6,14 +6,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import tsvetkoff.creep.Program;
+import tsvetkoff.creep.CalculationService;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.Params;
 import tsvetkoff.mapper.GraphMapper;
 
+import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author SweetSupremum
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChartController {
 
-    private Program run;
+    private final CalculationService calculationService;
     private Future<Graph> graphFuture;
 
     private final GraphMapper graphMapper;
@@ -36,13 +38,10 @@ public class ChartController {
         if (graphFuture.isDone()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(params, graphFuture.get()));
         }
-        if (run != null && run.getGraph() != null && run.getR() != null) {
-            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDto(params, run.getGraph()));
+        if (calculationService.getGraph() != null) {
+            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDto(params, calculationService.getGraph()));
         }
-        if (run != null && run.getGraph() == null) {
-            return ResponseEntity.badRequest().body("graph is not initialized");
-        }
-        return ResponseEntity.badRequest().body(run == null ? "Run is null" : run.getR() == null ? "Run get R null" : "unknown");
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -51,9 +50,10 @@ public class ChartController {
      */
     @PostMapping("/run")
     public ResponseEntity<?> run(@RequestBody Params params) {
-        run = new Program(params);
-        graphFuture = run.asyncRun();
-        return ResponseEntity.ok(params.getStressTimes().stream().map(Object::toString).collect(Collectors.toList()));
+        graphFuture = calculationService.asyncCalculation(params);
+        return ResponseEntity.accepted().body(
+                params.getStressTimes().stream().map(Object::toString).collect(toCollection(LinkedHashSet::new))
+        );
     }
 
 }

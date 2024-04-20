@@ -3,10 +3,6 @@ spring:
     location: classpath:banner/creep-tube-banner
 creep-tube-ui-domain:
   http://localhost:3000
-server:
-  tomcat:
-    threads:
-      max: 200
 graph:
   points:
-    count: 20
+    count: 50
