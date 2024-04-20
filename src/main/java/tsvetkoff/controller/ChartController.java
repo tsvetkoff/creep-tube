@@ -1,6 +1,7 @@
 package tsvetkoff.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,8 +25,9 @@ import static java.util.stream.Collectors.toCollection;
 @RequiredArgsConstructor
 public class ChartController {
 
-    private final CalculationService calculationService;
+    private final ObjectFactory<CalculationService> calculationService;
     private Future<Graph> graphFuture;
+    private CalculationService localCalculationService;
 
     private final GraphMapper graphMapper;
 
@@ -38,8 +40,8 @@ public class ChartController {
         if (graphFuture.isDone()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(params, graphFuture.get()));
         }
-        if (calculationService.getGraph() != null) {
-            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDtoWithStressTimesCheck(params, calculationService.getGraph()));
+        if (localCalculationService.getGraph() != null) {
+            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDtoWithStressTimesCheck(params, localCalculationService.getGraph()));
         }
         return ResponseEntity.noContent().build();
     }
@@ -50,7 +52,8 @@ public class ChartController {
      */
     @PostMapping("/run")
     public ResponseEntity<?> run(@RequestBody Params params) {
-        graphFuture = calculationService.asyncCalculation(params);
+        localCalculationService = calculationService.getObject();
+        graphFuture = localCalculationService.asyncCalculation(params);
         return ResponseEntity.accepted().body(
                 params.getStressTimes().stream().map(Object::toString).collect(toCollection(LinkedHashSet::new))
         );

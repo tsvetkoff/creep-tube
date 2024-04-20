@@ -1,7 +1,6 @@
 package tsvetkoff.creep;
 
 import lombok.Getter;
-import org.springframework.stereotype.Service;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
 import tsvetkoff.domain.Pair;
@@ -17,7 +16,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
-@Service
 @Getter
 public class CalculationService {
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
