@@ -3,8 +3,12 @@ package tsvetkoff.creep;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 import tsvetkoff.domain.Graph;
+import tsvetkoff.domain.GraphDto;
+import tsvetkoff.domain.Pair;
 import tsvetkoff.domain.Params;
+import tsvetkoff.domain.enums.OmegaType;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -23,6 +27,8 @@ public class CalculationService {
     private Stress sigma;
     private CreepStrain p;
     private double eps_z, theta;
+
+    private double omegaR1, omegaR2, OmegaR1, OmegaR2;
     private double G, F, M, Jr, Q;
     private MathUtils mathUtils;
     private double[] temp1, temp2, g;
@@ -58,10 +64,13 @@ public class CalculationService {
         System.out.println("Начало расчёта с параметрами " + params);
         long start = System.currentTimeMillis();
         raiseForces(params);
+        addOmegasToOutput();
         while (t < params.t_max) {
             t = MathUtils.round(t + params.dt, 7);
             creep(params);
-            if (checkFinish()) {
+            boolean isFinish = checkFinish();
+            addOmegasToOutput();
+            if (isFinish) {
                 break;
             }
         }
@@ -114,6 +123,16 @@ public class CalculationService {
         graph.theta.put(t, theta);
     }
 
+    private void addOmegasToOutput() {
+        graph.getOmegasGraphDto().add(GraphDto.builder().abscissa(t).ordinates(List.of(
+                Pair.of(OmegaType.OMEGA_LOW_R1.getName(), omegaR1),
+                Pair.of(OmegaType.OMEGA_LOW_R2.getName(), omegaR2),
+                Pair.of(OmegaType.OMEGA_HIGH_R1.getName(), OmegaR1),
+                Pair.of(OmegaType.OMEGA_HIGH_R2.getName(), OmegaR2)
+        )).build());
+
+    }
+
     public void creep(Params params) {
         resolve_creep(params);
         resolve_sigma_r0(params);
@@ -162,6 +181,9 @@ public class CalculationService {
             p.p_theta[0][j] = p.p_theta[1][j];
             p.gamma_p[0][j] = p.gamma_p[1][j];
         }
+
+        OmegaR1 = p.Omega[0];
+        OmegaR2 = p.Omega[p.Omega.length - 1];
         if (damaged) {
             addStrainToOutput();
         }
@@ -187,6 +209,8 @@ public class CalculationService {
                     sigma.sigma_r[j] * (p.w_r[1][j] - p.w_r[0][j])) +
                     p.getAlpha_gamma(sigma.s0[j]) * sigma.tau[j] * (p.w_gamma[1][j] - p.w_gamma[0][j]);
         }
+        omegaR1 = p.omega[0];
+        omegaR2 = p.omega[p.omega.length - 1];
     }
 
     private void resolveV(Stress sigma, int j, Params params) {

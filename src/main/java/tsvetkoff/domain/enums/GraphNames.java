@@ -16,7 +16,8 @@ public enum GraphNames {
     TAU("tau"),
     Q("q"),
     EPS_Z("eps_z"),
-    THETA("theta");
+    THETA("theta"),
+    OMEGAS("omegas");
 
     @Getter
     private final String name;

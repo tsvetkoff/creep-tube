@@ -39,7 +39,7 @@ public class ChartController {
             return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(params, graphFuture.get()));
         }
         if (calculationService.getGraph() != null) {
-            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDto(params, calculationService.getGraph()));
+            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDtoWithStressTimesCheck(params, calculationService.getGraph()));
         }
         return ResponseEntity.noContent().build();
     }

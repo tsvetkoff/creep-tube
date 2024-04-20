@@ -32,7 +32,7 @@ public class GraphMapper {
      */
     private int pointCount;
 
-    public GraphNameDtoCollectionWrapper twoDimensionalMapToDto(Params params, Graph graph) {
+    public GraphNameDtoCollectionWrapper twoDimensionalMapToDtoWithStressTimesCheck(Params params, Graph graph) {
         Set<Double> stressTimes = params.getStressTimes();
         double[] r = graph.getR();
         log.error(Thread.currentThread().toString());
@@ -71,13 +71,29 @@ public class GraphMapper {
         return GraphNameDtoCollectionWrapper.builder().graphs(bodyGraphCollectionWrapper).build();
     }
 
+    public GraphNameDtoCollectionWrapper omegasMapToDto(Graph graph) {
+        Pair<String, List<GraphDto>> omegas = graph.getOmegas();
+        String label = omegas.getFirst();
+        List<GraphDto> graphs = omegas.getSecond();
+        List<GraphDto> splitGraphs = new ArrayList<>();
+        for (int i = 0; i < graphs.size(); i += StepUtils.getStep(graphs.size(), pointCount)) {
+            splitGraphs.add(graphs.get(i));
+        }
+        return GraphNameDtoCollectionWrapper.builder().graphs(
+                List.of(
+                        Pair.of(label, GraphNameDto.builder().graphs(splitGraphs).build())
+                )
+        ).build();
+    }
+
     public GraphNameDtoCollectionWrapper getAll(Params params, Graph graph) {
-        List<Pair<String, GraphNameDto>> twoDimensional = twoDimensionalMapToDto(params, graph).getGraphs();
+        List<Pair<String, GraphNameDto>> twoDimensional = twoDimensionalMapToDtoWithStressTimesCheck(params, graph).getGraphs();
         List<Pair<String, GraphNameDto>> oneDimensional = oneDimensionalMapToDto(graph);
         List<Pair<String, GraphNameDto>> allGraphs = new ArrayList<>(oneDimensional);
         if (twoDimensional != null) {
             allGraphs.addAll(twoDimensional);
         }
+        allGraphs.addAll(omegasMapToDto(graph).getGraphs());
         return GraphNameDtoCollectionWrapper.builder().graphs(allGraphs).build();
     }
 

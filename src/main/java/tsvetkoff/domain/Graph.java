@@ -3,6 +3,7 @@ package tsvetkoff.domain;
 import lombok.Data;
 import tsvetkoff.domain.enums.GraphNames;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ public class Graph {
     public final Map<String, double[]> tau0 = new LinkedHashMap<>();
     public final Map<String, double[]> tau = new LinkedHashMap<>();
     public final Map<String, double[]> q = new LinkedHashMap<>();
+    private List<GraphDto> omegasGraphDto = new ArrayList<>();
+
     public final Map<Double, Double> eps_z = new LinkedHashMap<>();
     public final Map<Double, Double> theta = new LinkedHashMap<>();
 
@@ -43,6 +46,13 @@ public class Graph {
                 Pair.of(GraphNames.TAU0.getName(), new LinkedHashMap<>(tau0)),
                 Pair.of(GraphNames.TAU.getName(), new LinkedHashMap<>(tau))
         );
+    }
+
+    /**
+     * Т.к. по сути здесь по одному графику, то не вызываем копию этого метода, а просто ждем пока все достроится
+     */
+    public Pair<String, List<GraphDto>> getOmegas() {
+        return Pair.of(GraphNames.OMEGAS.getName(), omegasGraphDto);
     }
 
     /**
