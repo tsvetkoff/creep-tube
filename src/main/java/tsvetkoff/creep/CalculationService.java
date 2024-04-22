@@ -57,8 +57,8 @@ public class CalculationService {
         t = 0.0;
         r_damaged = 0.0;
         final List<Double> initialValue = List.of(0.0);
-        eps_z = new ArrayList<>(initialValue);
-        theta = new ArrayList<>(initialValue);
+        eps_z = new ArrayList<>();
+        theta = new ArrayList<>();
         omegaR1 = new ArrayList<>(initialValue);
         omegaR2 = new ArrayList<>(initialValue);
         OmegaR1 = new ArrayList<>(initialValue);

@@ -1,6 +1,7 @@
 package tsvetkoff.domain;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import tsvetkoff.domain.enums.GraphNames;
 
 import java.util.LinkedHashMap;
@@ -14,6 +15,7 @@ import static tsvetkoff.domain.enums.OneDimensionalGraphs.EPS_Z;
 import static tsvetkoff.domain.enums.OneDimensionalGraphs.THETA;
 
 @Data
+@Slf4j
 public class Graph {
     public final double dt;
     /**
@@ -64,6 +66,11 @@ public class Graph {
      * Графики строятся по одному дожидаемся фьючу до конца
      */
     public Map<String, Map<String, double[]>> getOnlyLastCallGraphs() {
+        log.error("times {}", times.size());
+        log.error("eps_z {}", eps_z.get(EPS_Z.getOrdinateName()).size());
+        log.error("eps_z {}", theta.get(THETA.getOrdinateName()).size());
+        log.error("omega {}", highOmegasGraphDto.get(OMEGA_HIGH_R1.getRadialName()).size());
+        log.error("omega {}", lowOmegasGraphDto.get(OMEGA_LOW_R1.getRadialName()).size());
 
         return Map.of(
                 EPS_Z.getName(), eps_z.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
