@@ -1,10 +1,13 @@
 package tsvetkoff.domain.enums;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author SweetSupremum
  */
+@Getter
+@RequiredArgsConstructor
 public enum GraphNames {
     SIGMA_Z0("sigma_z0"),
     SIGMA_Z("sigma_z"),
@@ -15,15 +18,7 @@ public enum GraphNames {
     TAU0("tau0"),
     TAU("tau"),
     Q("q"),
-    EPS_Z("eps_z"),
-    THETA("theta"),
     OMEGAS("omegas");
 
-    @Getter
     private final String name;
-
-    GraphNames(String name) {
-        this.name = name;
-    }
-
 }

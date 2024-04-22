@@ -1,12 +1,12 @@
 package tsvetkoff.creep;
 
 import lombok.Getter;
+import org.springframework.stereotype.Service;
 import tsvetkoff.domain.Graph;
-import tsvetkoff.domain.GraphDto;
-import tsvetkoff.domain.Pair;
 import tsvetkoff.domain.Params;
-import tsvetkoff.domain.enums.OmegaType;
+import tsvetkoff.domain.enums.OmegaRadialName;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +15,10 @@ import java.util.concurrent.Future;
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+import static tsvetkoff.domain.enums.OneDimensionalGraphs.EPS_Z;
+import static tsvetkoff.domain.enums.OneDimensionalGraphs.THETA;
 
+@Service
 @Getter
 public class CalculationService {
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -24,14 +27,18 @@ public class CalculationService {
     private Graph graph;
     private Stress sigma;
     private CreepStrain p;
-    private double eps_z, theta;
+    private List<Double> eps_z, theta;
 
-    private double omegaR1, omegaR2, OmegaR1, OmegaR2;
+    private List<Double> omegaR1, omegaR2, OmegaR1, OmegaR2;
+
+    private List<Double> times;
     private double G, F, M, Jr, Q;
     private MathUtils mathUtils;
     private double[] temp1, temp2, g;
+    private Params params;
 
     public void init(Params params) {
+        this.params = params.initGammaConstants();
         double N = MathUtils.round((params.R2 - params.R1) / params.dr, 7) + 1;
         if (N % 1 != 0) {
             throw new IllegalArgumentException("Число точек разбиения по радиусу должно быть целым, но равно " + N + ", уменьшите шаг");
@@ -47,9 +54,19 @@ public class CalculationService {
         System.out.printf("Выполнена дискретизация по радиусу: [%s, %s, %s, ... , %s, %s] с шагом dr=%s (%d точек)%n",
                 r[0], r[1], r[2], r[r.length - 2], r[r.length - 1], params.dr, r.length);
 
+        t = 0.0;
+        r_damaged = 0.0;
+        final List<Double> initialValue = List.of(0.0);
+        eps_z = new ArrayList<>(initialValue);
+        theta = new ArrayList<>(initialValue);
+        omegaR1 = new ArrayList<>(initialValue);
+        omegaR2 = new ArrayList<>(initialValue);
+        OmegaR1 = new ArrayList<>(initialValue);
+        OmegaR2 = new ArrayList<>(initialValue);
+        times = new ArrayList<>(initialValue);
         sigma = new Stress(r.length);
         p = new CreepStrain(r.length, params);
-        graph = new Graph(params.dt, r);
+        graph = new Graph(params.dt, r, times);
         temp1 = new double[r.length];
         temp2 = new double[r.length];
         g = new double[r.length];
@@ -57,22 +74,22 @@ public class CalculationService {
     }
 
     public Graph calculation(Params params) {
-        params.initGammaConstants();
         init(params);
         System.out.println("Начало расчёта с параметрами " + params);
         long start = System.currentTimeMillis();
         raiseForces(params);
-        addOmegasToOutput();
         while (t < params.t_max) {
             t = MathUtils.round(t + params.dt, 7);
+            times.add(t);
             creep(params);
             boolean isFinish = checkFinish();
-            addOmegasToOutput();
             if (isFinish) {
                 break;
             }
         }
         addStressToOutput(t + " ч");
+        addOmegasToOutput();
+        addStrainToOutput();
         System.out.println("Программа выполнилась за " + (System.currentTimeMillis() - start) / 1000.0 + " с");
         return graph;
     }
@@ -99,9 +116,8 @@ public class CalculationService {
             sigma.tau[j] = sigma.tau0[j] = (M / Jr) * r[j];
             sigma.s[j] = sigma.s0[j] = 1 / sqrt(2) * sqrt(pow(sigma.sigma_z0[j] - sigma.sigma_theta0[j], 2) + pow(sigma.sigma_z0[j] - sigma.sigma_r0[j], 2) + pow(sigma.sigma_theta0[j] - sigma.sigma_r0[j], 2) + 6 * pow(sigma.tau0[j], 2));
         }
-        eps_z = (sigma.sigma_z0[0] - params.mu * (sigma.sigma_theta0[0] + sigma.sigma_r0[0])) / params.E;
-        theta = M / (G * Jr);
-        addStrainToOutput();
+        eps_z.add((sigma.sigma_z0[0] - params.mu * (sigma.sigma_theta0[0] + sigma.sigma_r0[0])) / params.E);
+        theta.add(M / (G * Jr));
         addStressToOutput("0.0 ч");
     }
 
@@ -117,18 +133,15 @@ public class CalculationService {
     }
 
     private void addStrainToOutput() {
-        graph.eps_z.put(t, eps_z);
-        graph.theta.put(t, theta);
+        graph.eps_z.put(EPS_Z.getOrdinateName(), eps_z);
+        graph.theta.put(THETA.getOrdinateName(), theta);
     }
 
     private void addOmegasToOutput() {
-        graph.getOmegasGraphDto().add(GraphDto.builder().abscissa(t).ordinates(List.of(
-                Pair.of(OmegaType.OMEGA_LOW_R1.getName(), omegaR1),
-                Pair.of(OmegaType.OMEGA_LOW_R2.getName(), omegaR2),
-                Pair.of(OmegaType.OMEGA_HIGH_R1.getName(), OmegaR1),
-                Pair.of(OmegaType.OMEGA_HIGH_R2.getName(), OmegaR2)
-        )).build());
-
+        graph.getLowOmegasGraphDto().put(OmegaRadialName.OMEGA_LOW_R1.getRadialName(), omegaR1);
+        graph.getLowOmegasGraphDto().put(OmegaRadialName.OMEGA_LOW_R2.getRadialName(), omegaR2);
+        graph.getHighOmegasGraphDto().put(OmegaRadialName.OMEGA_HIGH_R1.getRadialName(), OmegaR1);
+        graph.getHighOmegasGraphDto().put(OmegaRadialName.OMEGA_HIGH_R2.getRadialName(), OmegaR2);
     }
 
     public void creep(Params params) {
@@ -153,7 +166,6 @@ public class CalculationService {
         if (params.stressTimes.contains(t)) {
             addStressToOutput(t + " ч");
         }
-        addStrainToOutput();
     }
 
     private boolean checkFinish() {
@@ -180,11 +192,8 @@ public class CalculationService {
             p.gamma_p[0][j] = p.gamma_p[1][j];
         }
 
-        OmegaR1 = p.Omega[0];
-        OmegaR2 = p.Omega[p.Omega.length - 1];
-        if (damaged) {
-            addStrainToOutput();
-        }
+        OmegaR1.add(p.Omega[0]);
+        OmegaR2.add(p.Omega[p.Omega.length - 1]);
         return damaged;
     }
 
@@ -207,8 +216,8 @@ public class CalculationService {
                     sigma.sigma_r[j] * (p.w_r[1][j] - p.w_r[0][j])) +
                     p.getAlpha_gamma(sigma.s0[j]) * sigma.tau[j] * (p.w_gamma[1][j] - p.w_gamma[0][j]);
         }
-        omegaR1 = p.omega[0];
-        omegaR2 = p.omega[p.omega.length - 1];
+        omegaR1.add(p.omega[0]);
+        omegaR2.add(p.omega[p.omega.length - 1]);
     }
 
     private void resolveV(Stress sigma, int j, Params params) {
@@ -336,7 +345,8 @@ public class CalculationService {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = (p.p_z[1][j] - params.mu / params.E * (sigma.sigma_r0[j] + sigma.sigma_theta0[j])) * r[j];
         }
-        eps_z = F / (PI * (pow(params.R2, 2) - pow(params.R1, 2)) * params.E) + 2 / (pow(params.R2, 2) - pow(params.R1, 2)) * mathUtils.defIntegral(temp1, params.dr);
+        double eps_z = F / (PI * (pow(params.R2, 2) - pow(params.R1, 2)) * params.E) + 2 / (pow(params.R2, 2) - pow(params.R1, 2)) * mathUtils.defIntegral(temp1, params.dr);
+        this.eps_z.add(eps_z);
         for (int j = 0; j < r.length; j++) {
             sigma.sigma_z0[j] = params.E * (eps_z - p.p_z[1][j]) + params.mu * (sigma.sigma_r0[j] + sigma.sigma_theta0[j]);
         }
@@ -346,7 +356,8 @@ public class CalculationService {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = p.gamma_p[1][j] * pow(r[j], 2);
         }
-        theta = M / (G * Jr) + 2 * PI * mathUtils.defIntegral(temp1, params.dr) / Jr;
+        double theta = M / (G * Jr) + 2 * PI * mathUtils.defIntegral(temp1, params.dr) / Jr;
+        this.theta.add(theta);
         for (int j = 0; j < r.length; j++) {
             sigma.tau0[j] = G * (theta * r[j] - p.gamma_p[1][j]);
         }

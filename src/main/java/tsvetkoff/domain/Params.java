@@ -23,11 +23,12 @@ public class Params {
     // моменты времени для отображения
     public Set<Double> stressTimes;
 
-    public void initGammaConstants() {
+    public Params initGammaConstants() {
         c_gamma = c_p;
         mAlpha_gamma = mAlpha_p;
         alpha1_gamma = alpha1_p;
         mA_gamma = mA_p;
         A1_gamma = A1_p;
+        return this;
     }
 }

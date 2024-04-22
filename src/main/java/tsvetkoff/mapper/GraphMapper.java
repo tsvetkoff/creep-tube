@@ -5,16 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
-import tsvetkoff.domain.GraphNameDto;
-import tsvetkoff.domain.GraphNameDtoCollectionWrapper;
-import tsvetkoff.domain.Pair;
-import tsvetkoff.domain.Params;
-import tsvetkoff.utill.StepUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author SweetSupremum
@@ -29,89 +22,23 @@ public class GraphMapper {
      * (сначала проходим в цикле по нулевому потом уже добавляем это количество точек)
      * т.е. на 20 точек будет 20+1 (нулевая точка). Если же количество точек будет меньше чем pointCount*2, то выведем все
      * pointCount * 2
-     */
+     */ //TODO:
     private int pointCount;
 
-    public GraphNameDtoCollectionWrapper twoDimensionalMapToDtoWithStressTimesCheck(Params params, Graph graph) {
-        Set<Double> stressTimes = params.getStressTimes();
-        double[] r = graph.getR();
-        log.error(Thread.currentThread().toString());
-        log.error(String.valueOf(r.length));
-        List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
-        List<Pair<String, Map<String, double[]>>> twoDimensionalGraphWithName = graph.getTwoDimensionalGraphWithName();
-        boolean isNotReady = twoDimensionalGraphWithName.stream().anyMatch(nameDataGraph -> {
-            Map<String, double[]> timeCoordinates = nameDataGraph.getSecond();
-            return timeCoordinates.keySet().isEmpty();
-        });
-        if (isNotReady) {
-            return null;
-        }
-        twoDimensionalGraphWithName.forEach(nameDataGraph -> {
-            String nameGraph = nameDataGraph.getFirst();
-            log.error(nameGraph);
-            Map<String, double[]> dataGraph = nameDataGraph.getSecond();
-            List<GraphDto> coordinates = new ArrayList<>();
-            for (double i = 0; i < r.length; i += StepUtils.getStep(r.length, pointCount)) {
-                List<Pair<String, Double>> ordinates = new ArrayList<>();
-                double temp = i;
 
-                stressTimes.forEach(stressTime -> {
-                    String stringValueStressTime = stressTime + " ч";
-                    double[] graphValuesByTime = dataGraph.get(stringValueStressTime);
-                    if (graphValuesByTime != null) {
-                        ordinates.add(Pair.of(stringValueStressTime, graphValuesByTime[(int) temp]));
-                    }
-                });
-                coordinates.add(
-                        GraphDto.builder().abscissa(r[(int) temp]).ordinates(ordinates).build()
-                );
-            }
-            bodyGraphCollectionWrapper.add(Pair.of(nameGraph, GraphNameDto.builder().graphs(coordinates).build()));
-        });
-        return GraphNameDtoCollectionWrapper.builder().graphs(bodyGraphCollectionWrapper).build();
+    public GraphDto mapLastCallsGraphsToDto(Graph graph) {
+        return GraphDto.builder().r(graph.getR()).t(graph.getTimes()).nameLabelOrdinatesMap(graph.getOnlyLastCallGraphs()).build();
     }
 
-    public GraphNameDtoCollectionWrapper omegasMapToDto(Graph graph) {
-        Pair<String, List<GraphDto>> omegas = graph.getOmegas();
-        String label = omegas.getFirst();
-        List<GraphDto> graphs = omegas.getSecond();
-        List<GraphDto> splitGraphs = new ArrayList<>();
-        for (int i = 0; i < graphs.size(); i += StepUtils.getStep(graphs.size(), pointCount)) {
-            splitGraphs.add(graphs.get(i));
-        }
-        return GraphNameDtoCollectionWrapper.builder().graphs(
-                List.of(
-                        Pair.of(label, GraphNameDto.builder().graphs(splitGraphs).build())
-                )
-        ).build();
+    public GraphDto mapTempCallsGraphsToDto(Graph graph) {
+        return GraphDto.builder().r(graph.getR()).nameLabelOrdinatesMap(graph.getTwoDimensionalGraphWithName()).build();
     }
 
-    public GraphNameDtoCollectionWrapper getAll(Params params, Graph graph) {
-        List<Pair<String, GraphNameDto>> twoDimensional = twoDimensionalMapToDtoWithStressTimesCheck(params, graph).getGraphs();
-        List<Pair<String, GraphNameDto>> oneDimensional = oneDimensionalMapToDto(graph);
-        List<Pair<String, GraphNameDto>> allGraphs = new ArrayList<>(oneDimensional);
-        if (twoDimensional != null) {
-            allGraphs.addAll(twoDimensional);
-        }
-        allGraphs.addAll(omegasMapToDto(graph).getGraphs());
-        return GraphNameDtoCollectionWrapper.builder().graphs(allGraphs).build();
-    }
-
-    private List<Pair<String, GraphNameDto>> oneDimensionalMapToDto(Graph graph) {
-        List<Pair<String, GraphNameDto>> bodyGraphCollectionWrapper = new ArrayList<>();
-        List<Pair<String, Map<Double, Double>>> oneDimensionalGraphWithName = graph.getOneDimensionalGraphWithName();
-        oneDimensionalGraphWithName.forEach(nameCoordinates -> {
-            String name = nameCoordinates.getFirst();
-            Map<Double, Double> coordinates = nameCoordinates.getSecond();
-            List<GraphDto> graphs = new ArrayList<>();
-            List<Double> ordinates = coordinates.values().stream().toList();
-            double[] r = graph.getR();
-            for (double i = 0; i < r.length; i += StepUtils.getStep(r.length, pointCount)) {
-                graphs.add(GraphDto.builder().abscissa(r[(int) i]).ordinates(List.of(Pair.of("time", ordinates.get((int) i)))).build());
-
-            }
-            bodyGraphCollectionWrapper.add(Pair.of(name, GraphNameDto.builder().graphs(graphs).build()));
-        });
-        return bodyGraphCollectionWrapper;
+    public GraphDto getAll(Graph graph) {
+        GraphDto lastCallGraphs = mapLastCallsGraphsToDto(graph);
+        GraphDto tempCallsGraphs = mapTempCallsGraphsToDto(graph);
+        Map<String, Map<String, double[]>> allGraphs = new HashMap<>(tempCallsGraphs.getNameLabelOrdinatesMap());
+        allGraphs.putAll(lastCallGraphs.getNameLabelOrdinatesMap());
+        return GraphDto.builder().r(lastCallGraphs.getR()).t(lastCallGraphs.getT()).nameLabelOrdinatesMap(allGraphs).build();
     }
 }

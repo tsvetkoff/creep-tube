@@ -1,9 +1,9 @@
 package tsvetkoff.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,11 +12,8 @@ import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.Params;
 import tsvetkoff.mapper.GraphMapper;
 
-import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author SweetSupremum
@@ -25,23 +22,21 @@ import static java.util.stream.Collectors.toCollection;
 @RequiredArgsConstructor
 public class ChartController {
 
-    private final ObjectFactory<CalculationService> calculationService;
+    private final CalculationService calculationService;
     private Future<Graph> graphFuture;
-    private CalculationService localCalculationService;
-
     private final GraphMapper graphMapper;
 
 
     /**
      * Строит графики по таймаут запросу.
      */
-    @PostMapping("/build")
-    public ResponseEntity<Object> getSimpleGraph(@RequestBody Params params) throws ExecutionException, InterruptedException {
+    @GetMapping("/build")
+    public ResponseEntity<Object> getSimpleGraph() throws ExecutionException, InterruptedException {
         if (graphFuture.isDone()) {
-            return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(params, graphFuture.get()));
+            return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(graphFuture.get()));
         }
-        if (localCalculationService.getGraph() != null) {
-            return ResponseEntity.ok(graphMapper.twoDimensionalMapToDtoWithStressTimesCheck(params, localCalculationService.getGraph()));
+        if (calculationService.getGraph() != null) {
+            return ResponseEntity.ok(graphMapper.mapTempCallsGraphsToDto(calculationService.getGraph()));
         }
         return ResponseEntity.noContent().build();
     }
@@ -52,11 +47,8 @@ public class ChartController {
      */
     @PostMapping("/run")
     public ResponseEntity<?> run(@RequestBody Params params) {
-        localCalculationService = calculationService.getObject();
-        graphFuture = localCalculationService.asyncCalculation(params);
-        return ResponseEntity.accepted().body(
-                params.getStressTimes().stream().map(Object::toString).collect(toCollection(LinkedHashSet::new))
-        );
+        graphFuture = calculationService.asyncCalculation(params);
+        return ResponseEntity.accepted().build();
     }
 
 }
