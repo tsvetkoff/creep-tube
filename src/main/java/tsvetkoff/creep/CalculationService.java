@@ -77,11 +77,11 @@ public class CalculationService {
         init(params);
         System.out.println("Начало расчёта с параметрами " + params);
         long start = System.currentTimeMillis();
-        raiseForces(params);
+        raiseForces();
         while (t < params.t_max) {
             t = MathUtils.round(t + params.dt, 7);
             times.add(t);
-            creep(params);
+            creep();
             boolean isFinish = checkFinish();
             if (isFinish) {
                 break;
@@ -98,7 +98,7 @@ public class CalculationService {
         return executorService.submit(() -> calculation(params));
     }
 
-    private void raiseForces(Params params) {
+    private void raiseForces() {
         G = params.E / (2 * (1 + params.mu));
         F = params.sigma_0 * PI * (pow(params.R2, 2) - pow(params.R1, 2));
         Jr = (PI / 2) * (pow(params.R2, 4) - pow(params.R1, 4));
@@ -144,12 +144,12 @@ public class CalculationService {
         graph.getHighOmegasGraphDto().put(OmegaRadialName.OMEGA_HIGH_R2.getRadialName(), OmegaR2);
     }
 
-    public void creep(Params params) {
-        resolve_creep(params);
-        resolve_sigma_r0(params);
-        resolve_sigma_theta0(params);
-        resolve_sigma_z0(params);
-        resolve_tau0(params);
+    public void creep() {
+        resolve_creep();
+        resolve_sigma_r0();
+        resolve_sigma_theta0();
+        resolve_sigma_z0();
+        resolve_tau0();
 
         for (int j = 0; j < r.length; j++) {
             sigma.s0[j] = 1 / sqrt(2) * sqrt(pow(sigma.sigma_z0[j] - sigma.sigma_theta0[j], 2) + pow(sigma.sigma_z0[j] - sigma.sigma_r0[j], 2) + pow(sigma.sigma_theta0[j] - sigma.sigma_r0[j], 2) + 6 * pow(sigma.tau0[j], 2));
@@ -197,9 +197,9 @@ public class CalculationService {
         return damaged;
     }
 
-    private void resolve_creep(Params params) {
+    private void resolve_creep() {
         for (int j = 0; j < r.length; j++) {
-            resolveV(sigma, j, params);
+            resolveV(sigma, j);
 
             p.w_r[1][j] += 3.0 / 2.0 * params.c_p * pow(sigma.s[j], params.m - 1) * (sigma.sigma_r[j] - 1.0 / 3.0 * (sigma.sigma_z[j] + sigma.sigma_theta[j] + sigma.sigma_r[j])) * params.dt;
             p.w_theta[1][j] += 3.0 / 2.0 * params.c_p * pow(sigma.s[j], params.m - 1) * (sigma.sigma_theta[j] - 1.0 / 3.0 * (sigma.sigma_z[j] + sigma.sigma_theta[j] + sigma.sigma_r[j])) * params.dt;
@@ -220,7 +220,7 @@ public class CalculationService {
         omegaR2.add(p.omega[p.omega.length - 1]);
     }
 
-    private void resolveV(Stress sigma, int j, Params params) {
+    private void resolveV(Stress sigma, int j) {
         if (params.b == 0) {
             return;
         }
@@ -265,16 +265,16 @@ public class CalculationService {
         }
     }
 
-    private void resolve_sigma_r0(Params params) {
-        resolve_g(params);
+    private void resolve_sigma_r0() {
+        resolve_g();
         if (params.R1 > 0) {
-            resolve_sigma_r0_hollow(params);
+            resolve_sigma_r0_hollow();
         } else {
-            resolve_sigma_r0_solid(params);
+            resolve_sigma_r0_solid();
         }
     }
 
-    private void resolve_sigma_r0_solid(Params params) {
+    private void resolve_sigma_r0_solid() {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = g[j] * r[j];
         }
@@ -292,7 +292,7 @@ public class CalculationService {
         sigma.sigma_r0[0] = sigma.sigma_r0[1];
     }
 
-    private void resolve_sigma_r0_hollow(Params params) {
+    private void resolve_sigma_r0_hollow() {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = g[j] * r[j];
             temp2[j] = g[j] / r[j];
@@ -316,7 +316,7 @@ public class CalculationService {
         }
     }
 
-    private void resolve_g(Params params) {
+    private void resolve_g() {
         g[0] = params.E / (1 - pow(params.mu, 2)) * (p.p_r[1][0] - p.p_theta[1][0]
                 - params.R1 * ((p.p_theta[1][1] - p.p_theta[1][0]) / params.dr
                 + params.mu * (p.p_z[1][1] - p.p_z[1][0]) / params.dr)
@@ -333,7 +333,7 @@ public class CalculationService {
         );
     }
 
-    private void resolve_sigma_theta0(Params params) {
+    private void resolve_sigma_theta0() {
         sigma.sigma_theta0[0] = sigma.sigma_r0[0] + params.R1 * (-3 * sigma.sigma_r0[0] + 4 * sigma.sigma_r0[1] - sigma.sigma_r0[2]) / (2 * params.dr);
         for (int j = 1; j < r.length - 1; j++) {
             sigma.sigma_theta0[j] = sigma.sigma_r0[j] + r[j] * (sigma.sigma_r0[j + 1] - sigma.sigma_r0[j - 1]) / (2 * params.dr);
@@ -341,7 +341,7 @@ public class CalculationService {
         sigma.sigma_theta0[r.length - 1] = sigma.sigma_r0[r.length - 1] + params.R2 * (3 * sigma.sigma_r0[r.length - 1] - 4 * sigma.sigma_r0[r.length - 2] + sigma.sigma_r0[r.length - 3]) / (2 * params.dr);
     }
 
-    private void resolve_sigma_z0(Params params) {
+    private void resolve_sigma_z0() {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = (p.p_z[1][j] - params.mu / params.E * (sigma.sigma_r0[j] + sigma.sigma_theta0[j])) * r[j];
         }
@@ -352,7 +352,7 @@ public class CalculationService {
         }
     }
 
-    private void resolve_tau0(Params params) {
+    private void resolve_tau0() {
         for (int j = 0; j < r.length; j++) {
             temp1[j] = p.gamma_p[1][j] * pow(r[j], 2);
         }
