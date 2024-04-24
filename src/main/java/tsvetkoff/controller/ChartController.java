@@ -27,6 +27,15 @@ public class ChartController {
     private final GraphMapper graphMapper;
 
 
+    @GetMapping("/stop")
+    public ResponseEntity<Object> stop() {
+        if (graphFuture != null && !graphFuture.isCancelled()) {
+            graphFuture.cancel(true);
+            graphFuture = null;
+        }
+        return ResponseEntity.accepted().build();
+    }
+
     /**
      * Строит графики по таймаут запросу.
      */

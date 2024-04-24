@@ -21,6 +21,7 @@ public class CorsConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/build").allowedOrigins(creepTubeUi);
                 registry.addMapping("/run").allowedOrigins(creepTubeUi);
+                registry.addMapping("/stop").allowedOrigins(creepTubeUi);
             }
         };
     }
