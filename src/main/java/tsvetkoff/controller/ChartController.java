@@ -32,7 +32,7 @@ public class ChartController {
      */
     @GetMapping("/build")
     public ResponseEntity<Object> getSimpleGraph() throws ExecutionException, InterruptedException {
-        if (graphFuture.isDone()) {
+        if (graphFuture != null && graphFuture.isDone()) {
             return ResponseEntity.status(HttpStatus.CREATED).body(graphMapper.getAll(graphFuture.get()));
         }
         if (calculationService.getGraph() != null) {
@@ -46,8 +46,13 @@ public class ChartController {
      * инициализируем параметры
      */
     @PostMapping("/run")
-    public ResponseEntity<?> run(@RequestBody Params params) {
-        graphFuture = calculationService.asyncCalculation(params);
+    public synchronized ResponseEntity<?> run(@RequestBody Params params) {
+        if (graphFuture != null && !graphFuture.isCancelled()) {
+            graphFuture.cancel(true);
+            graphFuture = null;
+        } else {
+            graphFuture = calculationService.asyncCalculation(params);
+        }
         return ResponseEntity.accepted().build();
     }
 

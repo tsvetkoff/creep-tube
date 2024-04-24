@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public enum GraphNames {
+public enum GraphName {
     SIGMA_Z0("sigma_z0"),
     SIGMA_Z("sigma_z"),
     SIGMA_THETA0("sigma_theta0"),

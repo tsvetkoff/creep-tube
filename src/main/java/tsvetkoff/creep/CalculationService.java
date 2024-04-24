@@ -1,6 +1,8 @@
 package tsvetkoff.creep;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.Params;
@@ -8,9 +10,8 @@ import tsvetkoff.domain.enums.OmegaRadialName;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
@@ -20,8 +21,8 @@ import static tsvetkoff.domain.enums.OneDimensionalGraphs.THETA;
 
 @Service
 @Getter
+@Slf4j
 public class CalculationService {
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private double[] r;
     private double t, r_damaged;
     private Graph graph;
@@ -38,6 +39,7 @@ public class CalculationService {
     private Params params;
 
     public void init(Params params) {
+        log.error("49 Thread with name {} is interupt {}", Thread.currentThread().getName(), Thread.currentThread().isInterrupted());
         this.params = params.initGammaConstants();
         double N = MathUtils.round((params.R2 - params.R1) / params.dr, 7) + 1;
         if (N % 1 != 0) {
@@ -74,11 +76,12 @@ public class CalculationService {
     }
 
     public Graph calculation(Params params) {
+        log.error("86 Thread with name {} is interupt {}", Thread.currentThread().getName(), Thread.currentThread().isInterrupted());
         init(params);
         System.out.println("Начало расчёта с параметрами " + params);
         long start = System.currentTimeMillis();
         raiseForces();
-        while (t < params.t_max) {
+        while (t < params.t_max && !Thread.currentThread().isInterrupted()) {
             t = MathUtils.round(t + params.dt, 7);
             times.add(t);
             creep();
@@ -87,15 +90,23 @@ public class CalculationService {
                 break;
             }
         }
-        addStressToOutput(t + " ч");
-        addOmegasToOutput();
-        addStrainToOutput();
-        System.out.println("Программа выполнилась за " + (System.currentTimeMillis() - start) / 1000.0 + " с");
-        return graph;
+        if (!Thread.currentThread().isInterrupted()) {
+            addStressToOutput(t);
+            addOmegasToOutput();
+            addStrainToOutput();
+            System.out.println("Программа выполнилась за " + (System.currentTimeMillis() - start) / 1000.0 + " с");
+            return graph;
+        }
+        log.error("107 Thread with name {} is interupt {}", Thread.currentThread().getName(), true);
+        return null;
     }
 
+
+    @Async
     public Future<Graph> asyncCalculation(Params params) {
-        return executorService.submit(() -> calculation(params));
+        FutureTask<Graph> graphFutureTask = new FutureTask<>(() -> calculation(params));
+        graphFutureTask.run();
+        return graphFutureTask;
     }
 
     private void raiseForces() {
@@ -118,18 +129,19 @@ public class CalculationService {
         }
         eps_z.add((sigma.sigma_z0[0] - params.mu * (sigma.sigma_theta0[0] + sigma.sigma_r0[0])) / params.E);
         theta.add(M / (G * Jr));
-        addStressToOutput("0.0 ч");
+        addStressToOutput(t);
     }
 
-    private void addStressToOutput(String time) {
-        graph.sigma_z0.put(time, sigma.sigma_z0.clone());
-        graph.sigma_z.put(time, sigma.sigma_z.clone());
-        graph.sigma_theta0.put(time, sigma.sigma_theta0.clone());
-        graph.sigma_theta.put(time, sigma.sigma_theta.clone());
-        graph.sigma_r0.put(time, sigma.sigma_r0.clone());
-        graph.sigma_r.put(time, sigma.sigma_r.clone());
-        graph.tau0.put(time, sigma.tau0.clone());
-        graph.tau.put(time, sigma.tau.clone());
+    private void addStressToOutput(Double time) {
+        String key = String.format("t = %s ч", time);
+        graph.sigma_z0.put(key, sigma.sigma_z0.clone());
+        graph.sigma_z.put(key, sigma.sigma_z.clone());
+        graph.sigma_theta0.put(key, sigma.sigma_theta0.clone());
+        graph.sigma_theta.put(key, sigma.sigma_theta.clone());
+        graph.sigma_r0.put(key, sigma.sigma_r0.clone());
+        graph.sigma_r.put(key, sigma.sigma_r.clone());
+        graph.tau0.put(key, sigma.tau0.clone());
+        graph.tau.put(key, sigma.tau.clone());
     }
 
     private void addStrainToOutput() {
@@ -164,7 +176,7 @@ public class CalculationService {
             System.out.println("t=" + t + " ч");
         }
         if (params.stressTimes.contains(t)) {
-            addStressToOutput(t + " ч");
+            addStressToOutput(t);
         }
     }
 

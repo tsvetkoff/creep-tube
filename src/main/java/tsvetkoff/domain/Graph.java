@@ -2,7 +2,7 @@ package tsvetkoff.domain;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import tsvetkoff.domain.enums.GraphNames;
+import tsvetkoff.domain.enums.GraphName;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,14 +51,14 @@ public class Graph {
     public Map<String, Map<String, double[]>> getTwoDimensionalGraphWithName() {
         return
                 Map.of(
-                        GraphNames.SIGMA_Z0.getName(), new LinkedHashMap<>(sigma_z0),
-                        GraphNames.SIGMA_Z.getName(), new LinkedHashMap<>(sigma_z),
-                        GraphNames.SIGMA_THETA0.getName(), new LinkedHashMap<>(sigma_theta0),
-                        GraphNames.SIGMA_THETA.getName(), new LinkedHashMap<>(sigma_theta),
-                        GraphNames.SIGMA_R.getName(), new LinkedHashMap<>(sigma_r),
-                        GraphNames.SIGMA_R0.getName(), new LinkedHashMap<>(sigma_r0),
-                        GraphNames.TAU0.getName(), new LinkedHashMap<>(tau0),
-                        GraphNames.TAU.getName(), new LinkedHashMap<>(tau)
+                        GraphName.SIGMA_Z0.getName(), new LinkedHashMap<>(sigma_z0),
+                        GraphName.SIGMA_Z.getName(), new LinkedHashMap<>(sigma_z),
+                        GraphName.SIGMA_THETA0.getName(), new LinkedHashMap<>(sigma_theta0),
+                        GraphName.SIGMA_THETA.getName(), new LinkedHashMap<>(sigma_theta),
+                        GraphName.SIGMA_R.getName(), new LinkedHashMap<>(sigma_r),
+                        GraphName.SIGMA_R0.getName(), new LinkedHashMap<>(sigma_r0),
+                        GraphName.TAU0.getName(), new LinkedHashMap<>(tau0),
+                        GraphName.TAU.getName(), new LinkedHashMap<>(tau)
                 );
     }
 
