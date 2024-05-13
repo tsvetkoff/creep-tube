@@ -58,10 +58,8 @@ public class ChartController {
     public synchronized ResponseEntity<?> run(@RequestBody Params params) {
         if (graphFuture != null && !graphFuture.isCancelled()) {
             graphFuture.cancel(true);
-            graphFuture = null;
-        } else {
-            graphFuture = calculationService.asyncCalculation(params);
         }
+        graphFuture = calculationService.asyncCalculation(params);
         return ResponseEntity.accepted().build();
     }
 
