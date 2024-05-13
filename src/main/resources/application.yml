@@ -5,4 +5,4 @@ creep-tube-ui-domain:
   http://localhost:3000
 graph:
   points:
-    count: 50
+    count: 99
