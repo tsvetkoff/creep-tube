@@ -7,7 +7,7 @@ import tsvetkoff.domain.Graph;
 import tsvetkoff.domain.GraphDto;
 import tsvetkoff.utill.StepUtils;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j(topic = "GRAPH_MAPPER")
 public class GraphMapper {
 
-    @Value("${graph.points.count}")
+    @Value("${graph.points.count:100}")
     /**
      * количество точек + 1 потому что берется нулевой элемент
      * (сначала проходим в цикле по нулевому потом уже добавляем это количество точек)
@@ -47,7 +47,7 @@ public class GraphMapper {
     public GraphDto getAll(Graph graph) {
         GraphDto lastCallGraphs = mapLastCallsGraphsToDto(graph);
         GraphDto tempCallsGraphs = mapTempCallsGraphsToDto(graph);
-        Map<String, Map<String, double[]>> allGraphs = new HashMap<>(tempCallsGraphs.getNameLabelOrdinatesMap());
+        Map<String, Map<String, double[]>> allGraphs = new LinkedHashMap<>(tempCallsGraphs.getNameLabelOrdinatesMap());
         allGraphs.putAll(lastCallGraphs.getNameLabelOrdinatesMap());
         return GraphDto.builder()
                 .r(StepUtils.getArrayWithSlize(lastCallGraphs.getR(), pointCount))
@@ -57,9 +57,9 @@ public class GraphMapper {
     }
 
     public <T> Map<String, Map<String, double[]>> getGraphWithSlize(Map<String, Map<String, double[]>> graph) {
-        Map<String, Map<String, double[]>> graphWithSlizes = new HashMap<>();
+        Map<String, Map<String, double[]>> graphWithSlizes = new LinkedHashMap<>();
         for (Map.Entry<String, Map<String, double[]>> graphEntry : graph.entrySet()) {
-            Map<String, double[]> slizeGraph = new HashMap<>();
+            Map<String, double[]> slizeGraph = new LinkedHashMap<>();
             String key = graphEntry.getKey();
             Map<String, double[]> coordinatesMap = graphEntry.getValue();
             for (Map.Entry<String, double[]> coordinatesEntry : coordinatesMap.entrySet()) {
