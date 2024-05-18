@@ -30,8 +30,8 @@ public class GraphMapper {
     public GraphDto mapLastCallsGraphsToDto(Graph graph) {
         return GraphDto
                 .builder()
-                .r(StepUtils.getArrayWithSlize(graph.getR(), pointCount))
-                .t(StepUtils.getArrayWithSlize(graph.getTimes(), pointCount))
+                .r(StepUtils.getArrayWithSlice(graph.getR(), pointCount))
+                .t(StepUtils.getArrayWithSlice(graph.getTimes(), pointCount))
                 .nameLabelOrdinatesMap(getGraphWithSlize(graph.getOnlyLastCallGraphs()))
                 .build();
     }
@@ -39,7 +39,7 @@ public class GraphMapper {
     public GraphDto mapTempCallsGraphsToDto(Graph graph) {
         return GraphDto
                 .builder()
-                .r(StepUtils.getArrayWithSlize(graph.getR(), pointCount))
+                .r(StepUtils.getArrayWithSlice(graph.getR(), pointCount))
                 .nameLabelOrdinatesMap(getGraphWithSlize(graph.getTwoDimensionalGraphWithName()))
                 .build();
     }
@@ -50,8 +50,8 @@ public class GraphMapper {
         Map<String, Map<String, double[]>> allGraphs = new LinkedHashMap<>(tempCallsGraphs.getNameLabelOrdinatesMap());
         allGraphs.putAll(lastCallGraphs.getNameLabelOrdinatesMap());
         return GraphDto.builder()
-                .r(StepUtils.getArrayWithSlize(lastCallGraphs.getR(), pointCount))
-                .t(StepUtils.getArrayWithSlize(lastCallGraphs.getT(), pointCount))
+                .r(StepUtils.getArrayWithSlice(lastCallGraphs.getR(), pointCount))
+                .t(StepUtils.getArrayWithSlice(lastCallGraphs.getT(), pointCount))
                 .nameLabelOrdinatesMap(allGraphs)
                 .build();
     }
@@ -63,7 +63,7 @@ public class GraphMapper {
             String key = graphEntry.getKey();
             Map<String, double[]> coordinatesMap = graphEntry.getValue();
             for (Map.Entry<String, double[]> coordinatesEntry : coordinatesMap.entrySet()) {
-                double[] slizeCoordinates = StepUtils.getArrayWithSlize(coordinatesEntry.getValue(), pointCount);
+                double[] slizeCoordinates = StepUtils.getArrayWithSlice(coordinatesEntry.getValue(), pointCount);
                 slizeGraph.put(coordinatesEntry.getKey(), slizeCoordinates);
             }
             graphWithSlizes.put(key, slizeGraph);

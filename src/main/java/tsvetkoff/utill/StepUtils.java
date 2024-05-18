@@ -18,7 +18,7 @@ public class StepUtils {
         return ((double) (streamLength - 1) / (double) pointCount);
     }
 
-    public double[] getArrayWithSlize(double[] list, int pointCount) {
+    public double[] getArrayWithSlice(double[] list, int pointCount) {
         int length = list.length;
         double step = getStep(length, pointCount);
         double[] slizeList = new double[pointCount + 1];
@@ -30,7 +30,7 @@ public class StepUtils {
         return slizeList;
     }
 
-    public List<Double> getArrayWithSlize(List<Double> list, int pointCount) {
+    public List<Double> getArrayWithSlice(List<Double> list, int pointCount) {
         int length = list.size();
         double step = getStep(length, pointCount);
         List<Double> slizeList = new ArrayList<>();
