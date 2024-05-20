@@ -1,0 +1,8 @@
+spring:
+  banner:
+    location: classpath:banner/creep-tube-banner
+creep-tube-ui-domain:
+  http://localhost:3000
+graph:
+  points:
+    count: 100

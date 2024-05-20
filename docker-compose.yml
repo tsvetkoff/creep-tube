@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: creep-tube:3
+    ports:
+      - "8080:8080"
+  frontend:
+    image: creep-tube-ui:1
+    environment:
+      - 'CHOKIDAR_USEPOLLING=true'
+      - 'WATCHPACK_POLLING=true'
+      - 'WDS_SOCKET_HOST=127.0.0.1'
+      #      host back server
+      - 'REACT_APP_HOST=localhost'
+      #      port back server
+      - 'REACT_APP_PORT=8080'
+    volumes:
+      - C:\Users\alexey\IdeaProjects\creep-tube-ui\src:/app/src
+      - C:\Users\alexey\IdeaProjects\creep-tube-ui\public:/app/public
+    ports:
+      - "3000:3000"

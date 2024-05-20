@@ -1,5 +1,7 @@
 package tsvetkoff.creep;
 
+import tsvetkoff.domain.Params;
+
 import static java.lang.Math.pow;
 
 public class CreepStrain {
