@@ -7,8 +7,8 @@ import tsvetkoff.domain.enums.GraphName;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
 import static tsvetkoff.domain.enums.OmegaRadialName.OMEGA_HIGH_R1;
 import static tsvetkoff.domain.enums.OmegaRadialName.OMEGA_LOW_R1;
 import static tsvetkoff.domain.enums.OneDimensionalGraphs.EPS_Z;
@@ -73,10 +73,16 @@ public class Graph {
         log.error("omega {}", lowOmegasGraphDto.get(OMEGA_LOW_R1.getRadialName()).size());
 
         return Map.of(
-                EPS_Z.getName(), eps_z.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
-                THETA.getName(), theta.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
-                OMEGA_LOW_R1.getName(), lowOmegasGraphDto.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
-                OMEGA_HIGH_R1.getName(), highOmegasGraphDto.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray()))
+                EPS_Z.getName(), eps_z.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
+                THETA.getName(), theta.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray())),
+                OMEGA_LOW_R1.getName(), lowOmegasGraphDto.entrySet()
+                        .stream()
+                        .collect(toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray(), (v1, v2) -> v1, LinkedHashMap::new)
+                        ),
+                OMEGA_HIGH_R1.getName(), highOmegasGraphDto.entrySet()
+                        .stream()
+                        .collect(toMap(Map.Entry::getKey, e -> e.getValue().stream().mapToDouble(Double::doubleValue).toArray(), (v1, v2) -> v1, LinkedHashMap::new)
+                        )
         );
     }
 
