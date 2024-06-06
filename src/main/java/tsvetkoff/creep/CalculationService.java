@@ -142,6 +142,8 @@ public class CalculationService {
         graph.sigma_r.put(key, sigma.sigma_r.clone());
         graph.tau0.put(key, sigma.tau0.clone());
         graph.tau.put(key, sigma.tau.clone());
+        graph.s.put(key, sigma.s.clone());
+        graph.s0.put(key, sigma.s0.clone());
     }
 
     private void addStrainToOutput() {

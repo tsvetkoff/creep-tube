@@ -18,7 +18,10 @@ public enum GraphName {
     TAU0("tau0"),
     TAU("tau"),
     Q("q"),
+    S("s"),
+    S0("s0"),
+
     OMEGAS("omegas");
 
     private final String name;
-}
+    }

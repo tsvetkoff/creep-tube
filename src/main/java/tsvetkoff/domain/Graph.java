@@ -30,6 +30,8 @@ public class Graph {
     public final Map<String, double[]> tau0 = new LinkedHashMap<>();
     public final Map<String, double[]> tau = new LinkedHashMap<>();
     public final Map<String, double[]> q = new LinkedHashMap<>();
+    public final Map<String, double[]> s = new LinkedHashMap<>();
+    public final Map<String, double[]> s0 = new LinkedHashMap<>();
     private Map<String, List<Double>> lowOmegasGraphDto = new LinkedHashMap<>();
     private Map<String, List<Double>> highOmegasGraphDto = new LinkedHashMap<>();
 
@@ -58,7 +60,9 @@ public class Graph {
                         GraphName.SIGMA_R.getName(), new LinkedHashMap<>(sigma_r),
                         GraphName.SIGMA_R0.getName(), new LinkedHashMap<>(sigma_r0),
                         GraphName.TAU0.getName(), new LinkedHashMap<>(tau0),
-                        GraphName.TAU.getName(), new LinkedHashMap<>(tau)
+                        GraphName.TAU.getName(), new LinkedHashMap<>(tau),
+                        GraphName.S.getName(), new LinkedHashMap<>(s),
+                        GraphName.S0.getName(), new LinkedHashMap<>(s0)
                 );
     }
 
